@@ -3,32 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OM POS - Admin & Hisab Kitab</title>
+    <title>OM POS - Master Cloud Admin</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
     <style>
         body { background-color: #f8f9fa; color: #111; font-family: 'Poppins', sans-serif; margin: 0; padding: 15px; }
         header { border-bottom: 2px solid #000; padding: 12px 0; text-align: center; font-size: 22px; font-weight: 700; text-transform: uppercase; background: #fff; margin: -15px -15px 20px -15px; }
-        
-        /* Kamai Cards */
         .summary-box { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
         .card { background: #fff; border: 2px solid #000; border-radius: 12px; padding: 15px; box-shadow: 3px 3px 0px #000; }
         .card h4 { margin: 0; font-size: 13px; color: #555; text-transform: uppercase; }
         .card .amount { font-size: 24px; font-weight: 700; margin-top: 5px; }
-        
-        /* Item Stock & Forms */
         .box { background: #fff; border: 2px solid #000; border-radius: 12px; padding: 15px; margin-bottom: 20px; box-shadow: 3px 3px 0px #000; }
         h3 { margin-top: 0; font-size: 16px; border-bottom: 2px dashed #ccc; padding-bottom: 8px; }
-        input, button { width: 100%; padding: 10px; margin-bottom: 10px; border: 2px solid #000; border-radius: 8px; font-family: 'Poppins', sans-serif; box-sizing: border-box; font-size: 14px; }
+        input, textarea, button { width: 100%; padding: 10px; margin-bottom: 10px; border: 2px solid #000; border-radius: 8px; font-family: 'Poppins', sans-serif; box-sizing: border-box; font-size: 14px; }
         button { background: #000; color: #fff; font-weight: 700; cursor: pointer; text-transform: uppercase; }
-        
-        /* Items Row */
         .row-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding: 8px 0; }
         .badge-stock { background: #e8f5e9; color: #2e7d32; font-weight: bold; padding: 2px 8px; border-radius: 6px; font-size: 12px; }
         .badge-out { background: #ffebee; color: #c62828; font-weight: bold; padding: 2px 8px; border-radius: 6px; font-size: 12px; }
-        
-        /* History Row */
         .bill-card { background: #fdfdfd; border: 1px solid #ddd; border-radius: 8px; padding: 10px; margin-bottom: 8px; }
         .bill-top { display: flex; justify-content: space-between; font-weight: 700; font-size: 15px; }
         .bill-items { font-size: 12px; color: #444; margin-top: 4px; }
@@ -37,40 +29,52 @@
 </head>
 <body>
 
-    <header>OM POS - Dukan Ka Hisab</header>
+    <header>OM POS - Master Cloud Admin</header>
 
-    <!-- KUL KAMAI (TOP STATS) -->
+    <!-- KUL KAMAI -->
     <div class="summary-box">
         <div class="card">
-            <h4>Total Kamai</h4>
+            <h4>Total Kamai (All Branches)</h4>
             <div class="amount" id="totalSale" style="color: #2e7d32;">₹ 0</div>
         </div>
         <div class="card">
-            <h4>Total Bill Kate</h4>
+            <h4>Total Bills Kate</h4>
             <div class="amount" id="totalBills">0</div>
         </div>
     </div>
 
-    <!-- STOCK & ITEMS (KITNA BACHA HAI) -->
+    <!-- DYNAMIC BRANCH MASTER -->
     <div class="box">
-        <h3>Store Mein Kitna Cake Bacha Hai</h3>
+        <h3>Nayi Branch Jodein / Update Karein</h3>
+        <input type="text" id="branchCode" placeholder="Branch Code (e.g. b1, b2, b3)">
+        <input type="text" id="branchName" placeholder="Branch Name (e.g. Main Branch / Station Road)">
+        <textarea id="branchAddress" rows="2" placeholder="Manual Address (Jo bill par print hoga)"></textarea>
+        <button onclick="saveBranch()">Save Branch to Cloud</button>
+
+        <h4 style="margin: 15px 0 5px 0; font-size: 14px;">Active Branches & Links:</h4>
+        <div id="branchList">Loading branches...</div>
+    </div>
+
+    <!-- STOCK IN STORE -->
+    <div class="box">
+        <h3>Cake Menu & Stock</h3>
         <div id="stockList">Loading stock...</div>
     </div>
 
-    <!-- SALES REPORT (KONSE BILL MEIN KYA BIKA) -->
+    <!-- ADD PRODUCT -->
     <div class="box">
-        <h3>Pichli Bikri (Sales History)</h3>
-        <div id="historyList">Loading history...</div>
-    </div>
-
-    <!-- ADD ITEM FORM -->
-    <div class="box">
-        <h3>Naya Cake / Item Jodein</h3>
-        <input type="text" id="itemName" placeholder="Cake ka naam (e.g. Pineapple)">
+        <h3>Naya Cake Jodein</h3>
+        <input type="text" id="itemName" placeholder="Cake Name (e.g. Black Forest)">
         <input type="number" id="itemPrice" placeholder="Price (₹)">
         <input type="text" id="itemIcon" placeholder="Emoji (e.g. 🎂)">
         <input type="number" id="itemStock" placeholder="Kitna piece hai (Stock)">
-        <button onclick="addProduct()">Save to Menu</button>
+        <button onclick="addProduct()">Save Cake</button>
+    </div>
+
+    <!-- SALES HISTORY -->
+    <div class="box">
+        <h3>Pichli Bikri (Branch-wise History)</h3>
+        <div id="historyList">Loading history...</div>
     </div>
 
     <script>
@@ -86,7 +90,50 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // 1. STOCK LIST DIKHANA
+        // 1. DYNAMIC BRANCH MANAGEMENT
+        function saveBranch() {
+            const code = document.getElementById('branchCode').value.trim().toLowerCase();
+            const name = document.getElementById('branchName').value.trim();
+            const address = document.getElementById('branchAddress').value.trim();
+
+            if (!code || !name || !address) {
+                alert("Branch Code, Name aur Address teeno bharna zaroori hai!");
+                return;
+            }
+
+            db.ref('branches/' + code).set({
+                code: code,
+                name: name,
+                address: address
+            }).then(() => {
+                alert(`Branch '${name}' successfully save ho gayi!`);
+                document.getElementById('branchCode').value = '';
+                document.getElementById('branchName').value = '';
+                document.getElementById('branchAddress').value = '';
+            });
+        }
+
+        db.ref('branches').on('value', (snapshot) => {
+            const list = document.getElementById('branchList');
+            list.innerHTML = '';
+            if (!snapshot.exists()) {
+                list.innerHTML = '<p style="color:#777; font-size:12px;">Koi branch nahi hai. Upar se pehli branch add karein.</p>';
+                return;
+            }
+
+            snapshot.forEach(child => {
+                const b = child.val();
+                list.innerHTML += `
+                    <div style="border-bottom: 1px solid #ddd; padding: 8px 0; font-size: 13px;">
+                        <b>[${b.code}] ${b.name}</b><br>
+                        <span style="color:#555; font-size: 11px;">📍 ${b.address}</span><br>
+                        <span style="color:#0066cc; font-size: 11px;">Link: https://deepak8253.github.io/OM-CACK-POS/?branch=${b.code}</span>
+                    </div>
+                `;
+            });
+        });
+
+        // 2. PRODUCT STOCK MANAGEMENT
         db.ref('products').on('value', (snapshot) => {
             const list = document.getElementById('stockList');
             list.innerHTML = '';
@@ -112,52 +159,6 @@
             });
         });
 
-        // 2. BIKRI KA HISAB (SALES HISTORY & TOTAL KAMAI)
-        db.ref('sales_history').on('value', (snapshot) => {
-            const histDiv = document.getElementById('historyList');
-            histDiv.innerHTML = '';
-            
-            let totalAmount = 0;
-            let billCount = 0;
-
-            if (!snapshot.exists()) {
-                histDiv.innerHTML = '<p>Abhi tak koi bikri nahi hui.</p>';
-                document.getElementById('totalSale').innerText = '₹ 0';
-                document.getElementById('totalBills').innerText = '0';
-                return;
-            }
-
-            const bills = [];
-            snapshot.forEach(child => {
-                const b = child.val();
-                totalAmount += (b.total_amount || 0);
-                billCount++;
-                bills.unshift(b); // naya bill upar
-            });
-
-            document.getElementById('totalSale').innerText = `₹ ${totalAmount}`;
-            document.getElementById('totalBills').innerText = billCount;
-
-            bills.forEach(bill => {
-                let itemsList = '';
-                if(bill.items && Array.isArray(bill.items)) {
-                    itemsList = bill.items.map(i => `${i.name} (${i.qty} piece)`).join(' + ');
-                }
-                
-                histDiv.innerHTML += `
-                    <div class="bill-card">
-                        <div class="bill-top">
-                            <span>Bill Total:</span>
-                            <span style="color:#2e7d32;">₹${bill.total_amount}</span>
-                        </div>
-                        <div class="bill-items">🎂 <b>Kharida:</b> ${itemsList}</div>
-                        <div class="bill-date">⏰ ${bill.date}</div>
-                    </div>
-                `;
-            });
-        });
-
-        // Naya Product Dalna
         function addProduct() {
             const name = document.getElementById('itemName').value;
             const price = document.getElementById('itemPrice').value;
@@ -165,7 +166,7 @@
             const stock = document.getElementById('itemStock').value || 0;
 
             if (!name || !price) {
-                alert("Naam aur Price zaroor bharein!");
+                alert("Naam aur Price zaroori hai!");
                 return;
             }
 
@@ -183,10 +184,54 @@
         }
 
         function deleteItem(key) {
-            if(confirm("Kya is cake ko menu se hatana chahte hain?")) {
+            if(confirm("Kya is cake ko hatana chahte hain?")) {
                 db.ref('products/' + key).remove();
             }
         }
+
+        // 3. SALES & REVENUE LOG
+        db.ref('sales_history').on('value', (snapshot) => {
+            const histDiv = document.getElementById('historyList');
+            histDiv.innerHTML = '';
+            let totalAmount = 0;
+            let billCount = 0;
+
+            if (!snapshot.exists()) {
+                histDiv.innerHTML = '<p>Abhi tak koi bikri nahi hui.</p>';
+                document.getElementById('totalSale').innerText = '₹ 0';
+                document.getElementById('totalBills').innerText = '0';
+                return;
+            }
+
+            const bills = [];
+            snapshot.forEach(child => {
+                const b = child.val();
+                totalAmount += (b.total_amount || 0);
+                billCount++;
+                bills.unshift(b);
+            });
+
+            document.getElementById('totalSale').innerText = `₹ ${totalAmount}`;
+            document.getElementById('totalBills').innerText = billCount;
+
+            bills.forEach(bill => {
+                let itemsList = '';
+                if(bill.items && Array.isArray(bill.items)) {
+                    itemsList = bill.items.map(i => `${i.name} (${i.qty} piece)`).join(' + ');
+                }
+                
+                histDiv.innerHTML += `
+                    <div class="bill-card">
+                        <div class="bill-top">
+                            <span>[${bill.branch || 'Main'}] Bill:</span>
+                            <span style="color:#2e7d32;">₹${bill.total_amount}</span>
+                        </div>
+                        <div class="bill-items">🎂 <b>Kharida:</b> ${itemsList}</div>
+                        <div class="bill-date">⏰ ${bill.date} | 📍 ${bill.address || ''}</div>
+                    </div>
+                `;
+            });
+        });
     </script>
 </body>
 </html>
