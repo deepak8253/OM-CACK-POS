@@ -3,38 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OM POS - Admin Dashboard</title>
+    <title>OM POS - Admin & Hisab Kitab</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
     <style>
-        body { background-color: #ffffff; color: #000000; font-family: 'Poppins', sans-serif; margin: 0; padding: 20px; }
-        header { border-bottom: 3px solid #000000; padding-bottom: 20px; text-align: center; font-size: 28px; font-weight: 700; text-transform: uppercase; margin-bottom: 20px; }
-        .admin-container { display: flex; gap: 20px; flex-wrap: wrap; }
-        .form-section, .list-section { flex: 1; min-width: 300px; border: 2px solid #000000; padding: 20px; border-radius: 12px; box-shadow: 4px 4px 0px #000000; }
-        h3 { border-bottom: 2px dashed #000; padding-bottom: 10px; margin-top: 0; }
-        input, button { width: 100%; padding: 12px; margin-bottom: 15px; border: 2px solid #000000; border-radius: 8px; font-family: 'Poppins', sans-serif; box-sizing: border-box; font-size: 14px; }
-        button { background-color: #000000; color: #ffffff; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 16px; }
-        button:active { transform: translate(2px, 2px); box-shadow: none; }
-        .product-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #000; padding: 10px 0; }
-        .del-btn { background-color: #fff; color: #000; border: 2px solid #000; padding: 5px 10px; width: auto; margin: 0; font-size: 12px; border-radius: 6px; }
+        body { background-color: #f8f9fa; color: #111; font-family: 'Poppins', sans-serif; margin: 0; padding: 15px; }
+        header { border-bottom: 2px solid #000; padding: 12px 0; text-align: center; font-size: 22px; font-weight: 700; text-transform: uppercase; background: #fff; margin: -15px -15px 20px -15px; }
+        
+        /* Kamai Cards */
+        .summary-box { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+        .card { background: #fff; border: 2px solid #000; border-radius: 12px; padding: 15px; box-shadow: 3px 3px 0px #000; }
+        .card h4 { margin: 0; font-size: 13px; color: #555; text-transform: uppercase; }
+        .card .amount { font-size: 24px; font-weight: 700; margin-top: 5px; }
+        
+        /* Item Stock & Forms */
+        .box { background: #fff; border: 2px solid #000; border-radius: 12px; padding: 15px; margin-bottom: 20px; box-shadow: 3px 3px 0px #000; }
+        h3 { margin-top: 0; font-size: 16px; border-bottom: 2px dashed #ccc; padding-bottom: 8px; }
+        input, button { width: 100%; padding: 10px; margin-bottom: 10px; border: 2px solid #000; border-radius: 8px; font-family: 'Poppins', sans-serif; box-sizing: border-box; font-size: 14px; }
+        button { background: #000; color: #fff; font-weight: 700; cursor: pointer; text-transform: uppercase; }
+        
+        /* Items Row */
+        .row-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding: 8px 0; }
+        .badge-stock { background: #e8f5e9; color: #2e7d32; font-weight: bold; padding: 2px 8px; border-radius: 6px; font-size: 12px; }
+        .badge-out { background: #ffebee; color: #c62828; font-weight: bold; padding: 2px 8px; border-radius: 6px; font-size: 12px; }
+        
+        /* History Row */
+        .bill-card { background: #fdfdfd; border: 1px solid #ddd; border-radius: 8px; padding: 10px; margin-bottom: 8px; }
+        .bill-top { display: flex; justify-content: space-between; font-weight: 700; font-size: 15px; }
+        .bill-items { font-size: 12px; color: #444; margin-top: 4px; }
+        .bill-date { font-size: 10px; color: #888; margin-top: 4px; }
     </style>
 </head>
 <body>
-    <header>OM POS - Admin Panel</header>
-    <div class="admin-container">
-        <div class="form-section">
-            <h3>Add New Cake / Item</h3>
-            <input type="text" id="itemName" placeholder="Item Name (e.g. Vanilla Cake)">
-            <input type="number" id="itemPrice" placeholder="Price (e.g. 300)">
-            <input type="text" id="itemIcon" placeholder="Emoji Icon (e.g. 🧁)">
-            <input type="number" id="itemStock" placeholder="Opening Stock (e.g. 10)">
-            <button onclick="addProduct()">Save to Cloud Database</button>
+
+    <header>OM POS - Dukan Ka Hisab</header>
+
+    <!-- KUL KAMAI (TOP STATS) -->
+    <div class="summary-box">
+        <div class="card">
+            <h4>Total Kamai</h4>
+            <div class="amount" id="totalSale" style="color: #2e7d32;">₹ 0</div>
         </div>
-        <div class="list-section">
-            <h3>Live Cloud Menu & Stock</h3>
-            <div id="productList">Loading...</div>
+        <div class="card">
+            <h4>Total Bill Kate</h4>
+            <div class="amount" id="totalBills">0</div>
         </div>
+    </div>
+
+    <!-- STOCK & ITEMS (KITNA BACHA HAI) -->
+    <div class="box">
+        <h3>Store Mein Kitna Cake Bacha Hai</h3>
+        <div id="stockList">Loading stock...</div>
+    </div>
+
+    <!-- SALES REPORT (KONSE BILL MEIN KYA BIKA) -->
+    <div class="box">
+        <h3>Pichli Bikri (Sales History)</h3>
+        <div id="historyList">Loading history...</div>
+    </div>
+
+    <!-- ADD ITEM FORM -->
+    <div class="box">
+        <h3>Naya Cake / Item Jodein</h3>
+        <input type="text" id="itemName" placeholder="Cake ka naam (e.g. Pineapple)">
+        <input type="number" id="itemPrice" placeholder="Price (₹)">
+        <input type="text" id="itemIcon" placeholder="Emoji (e.g. 🎂)">
+        <input type="number" id="itemStock" placeholder="Kitna piece hai (Stock)">
+        <button onclick="addProduct()">Save to Menu</button>
     </div>
 
     <script>
@@ -50,22 +86,94 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
+        // 1. STOCK LIST DIKHANA
+        db.ref('products').on('value', (snapshot) => {
+            const list = document.getElementById('stockList');
+            list.innerHTML = '';
+            if (!snapshot.exists()) {
+                list.innerHTML = '<p>Menu mein koi cake nahi hai.</p>';
+                return;
+            }
+            snapshot.forEach(child => {
+                const item = child.val();
+                const badge = item.stock <= 0 
+                    ? '<span class="badge-out">OUT OF STOCK (0)</span>' 
+                    : `<span class="badge-stock">Bacha Hai: ${item.stock} piece</span>`;
+
+                list.innerHTML += `
+                    <div class="row-item">
+                        <div>
+                            <b>${item.icon || '🍰'} ${item.name}</b> (₹${item.price})<br>
+                            ${badge}
+                        </div>
+                        <button style="width: auto; padding: 4px 10px; margin: 0; font-size: 11px; background: #fff; color: #c62828; border-color: #c62828;" onclick="deleteItem('${child.key}')">Hatao</button>
+                    </div>
+                `;
+            });
+        });
+
+        // 2. BIKRI KA HISAB (SALES HISTORY & TOTAL KAMAI)
+        db.ref('sales_history').on('value', (snapshot) => {
+            const histDiv = document.getElementById('historyList');
+            histDiv.innerHTML = '';
+            
+            let totalAmount = 0;
+            let billCount = 0;
+
+            if (!snapshot.exists()) {
+                histDiv.innerHTML = '<p>Abhi tak koi bikri nahi hui.</p>';
+                document.getElementById('totalSale').innerText = '₹ 0';
+                document.getElementById('totalBills').innerText = '0';
+                return;
+            }
+
+            const bills = [];
+            snapshot.forEach(child => {
+                const b = child.val();
+                totalAmount += (b.total_amount || 0);
+                billCount++;
+                bills.unshift(b); // naya bill upar
+            });
+
+            document.getElementById('totalSale').innerText = `₹ ${totalAmount}`;
+            document.getElementById('totalBills').innerText = billCount;
+
+            bills.forEach(bill => {
+                let itemsList = '';
+                if(bill.items && Array.isArray(bill.items)) {
+                    itemsList = bill.items.map(i => `${i.name} (${i.qty} piece)`).join(' + ');
+                }
+                
+                histDiv.innerHTML += `
+                    <div class="bill-card">
+                        <div class="bill-top">
+                            <span>Bill Total:</span>
+                            <span style="color:#2e7d32;">₹${bill.total_amount}</span>
+                        </div>
+                        <div class="bill-items">🎂 <b>Kharida:</b> ${itemsList}</div>
+                        <div class="bill-date">⏰ ${bill.date}</div>
+                    </div>
+                `;
+            });
+        });
+
+        // Naya Product Dalna
         function addProduct() {
             const name = document.getElementById('itemName').value;
             const price = document.getElementById('itemPrice').value;
             const icon = document.getElementById('itemIcon').value || '🍰';
             const stock = document.getElementById('itemStock').value || 0;
 
-            if(!name || !price) {
-                alert("Naam aur Price zaroori hai!");
+            if (!name || !price) {
+                alert("Naam aur Price zaroor bharein!");
                 return;
             }
 
-            db.ref('products').push({ 
-                name: name, 
-                price: Number(price), 
-                icon: icon, 
-                stock: Number(stock) 
+            db.ref('products').push({
+                name: name,
+                price: Number(price),
+                icon: icon,
+                stock: Number(stock)
             }).then(() => {
                 document.getElementById('itemName').value = '';
                 document.getElementById('itemPrice').value = '';
@@ -74,26 +182,9 @@
             });
         }
 
-        // Live Database Listener
-        db.ref('products').on('value', (snapshot) => {
-            const list = document.getElementById('productList');
-            list.innerHTML = '';
-            if(!snapshot.exists()) {
-                list.innerHTML = 'Database khali hai. Naya item add karein.';
-                return;
-            }
-            snapshot.forEach((child) => {
-                const item = child.val();
-                list.innerHTML += `<div class="product-item">
-                    <div>${item.icon} <b>${item.name}</b> <br> ₹${item.price} | Stock: ${item.stock}</div>
-                    <button class="del-btn" onclick="deleteProduct('${child.key}')">Delete</button>
-                </div>`;
-            });
-        });
-
-        function deleteProduct(id) {
-            if(confirm("Kya aap is item ko hamesha ke liye delete karna chahte hain?")) {
-                db.ref('products/' + id).remove();
+        function deleteItem(key) {
+            if(confirm("Kya is cake ko menu se hatana chahte hain?")) {
+                db.ref('products/' + key).remove();
             }
         }
     </script>
