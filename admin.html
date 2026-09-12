@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OM POS - Admin Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
+    <style>
+        body { background-color: #ffffff; color: #000000; font-family: 'Poppins', sans-serif; margin: 0; padding: 20px; }
+        header { border-bottom: 3px solid #000000; padding-bottom: 20px; text-align: center; font-size: 28px; font-weight: 700; text-transform: uppercase; margin-bottom: 20px; }
+        .admin-container { display: flex; gap: 20px; flex-wrap: wrap; }
+        .form-section, .list-section { flex: 1; min-width: 300px; border: 2px solid #000000; padding: 20px; border-radius: 12px; box-shadow: 4px 4px 0px #000000; }
+        h3 { border-bottom: 2px dashed #000; padding-bottom: 10px; margin-top: 0; }
+        input, button { width: 100%; padding: 12px; margin-bottom: 15px; border: 2px solid #000000; border-radius: 8px; font-family: 'Poppins', sans-serif; box-sizing: border-box; font-size: 14px; }
+        button { background-color: #000000; color: #ffffff; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 16px; }
+        button:active { transform: translate(2px, 2px); box-shadow: none; }
+        .product-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #000; padding: 10px 0; }
+        .del-btn { background-color: #fff; color: #000; border: 2px solid #000; padding: 5px 10px; width: auto; margin: 0; font-size: 12px; border-radius: 6px; }
+    </style>
+</head>
+<body>
+    <header>OM POS - Admin Panel</header>
+    <div class="admin-container">
+        <div class="form-section">
+            <h3>Add New Cake / Item</h3>
+            <input type="text" id="itemName" placeholder="Item Name (e.g. Vanilla Cake)">
+            <input type="number" id="itemPrice" placeholder="Price (e.g. 300)">
+            <input type="text" id="itemIcon" placeholder="Emoji Icon (e.g. 🧁)">
+            <input type="number" id="itemStock" placeholder="Opening Stock (e.g. 10)">
+            <button onclick="addProduct()">Save to Cloud Database</button>
+        </div>
+        <div class="list-section">
+            <h3>Live Cloud Menu & Stock</h3>
+            <div id="productList">Loading...</div>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDk1imNgksW5aLhUGe7-DWk3RWw1gaOaVs",
+            authDomain: "cake-shop-pos.firebaseapp.com",
+            databaseURL: "https://cake-shop-pos-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "cake-shop-pos",
+            storageBucket: "cake-shop-pos.firebasestorage.app",
+            messagingSenderId: "259110458276",
+            appId: "1:259110458276:web:2d2f5a61364e5a77aea731"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        function addProduct() {
+            const name = document.getElementById('itemName').value;
+            const price = document.getElementById('itemPrice').value;
+            const icon = document.getElementById('itemIcon').value || '🍰';
+            const stock = document.getElementById('itemStock').value || 0;
+
+            if(!name || !price) {
+                alert("Naam aur Price zaroori hai!");
+                return;
+            }
+
+            db.ref('products').push({ 
+                name: name, 
+                price: Number(price), 
+                icon: icon, 
+                stock: Number(stock) 
+            }).then(() => {
+                document.getElementById('itemName').value = '';
+                document.getElementById('itemPrice').value = '';
+                document.getElementById('itemIcon').value = '';
+                document.getElementById('itemStock').value = '';
+            });
+        }
+
+        // Live Database Listener
+        db.ref('products').on('value', (snapshot) => {
+            const list = document.getElementById('productList');
+            list.innerHTML = '';
+            if(!snapshot.exists()) {
+                list.innerHTML = 'Database khali hai. Naya item add karein.';
+                return;
+            }
+            snapshot.forEach((child) => {
+                const item = child.val();
+                list.innerHTML += `<div class="product-item">
+                    <div>${item.icon} <b>${item.name}</b> <br> ₹${item.price} | Stock: ${item.stock}</div>
+                    <button class="del-btn" onclick="deleteProduct('${child.key}')">Delete</button>
+                </div>`;
+            });
+        });
+
+        function deleteProduct(id) {
+            if(confirm("Kya aap is item ko hamesha ke liye delete karna chahte hain?")) {
+                db.ref('products/' + id).remove();
+            }
+        }
+    </script>
+</body>
+</html>
